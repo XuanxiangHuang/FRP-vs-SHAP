@@ -18,22 +18,16 @@ import matplotlib.pyplot as plt
 
 def plot_disorder_inst(data, instance, pred, col_names, fig_title, filename, score_type="lundberg"):
     df = pd.DataFrame(data, columns=col_names)
-    ax1 = df.plot(kind='scatter', x=col_names[0], y=col_names[1], color="#E69F00", s=50, marker='^')
-    ax2 = df.plot(kind='scatter', x=col_names[0], y=col_names[2], color="#56B4E9", s=50, ax=ax1)
-    x = df[col_names[0]].to_numpy()
-    y1 = df[col_names[1]].to_numpy()
-    y2 = df[col_names[2]].to_numpy()
-    for i in range(len(x)):
-        if y1[i] != np.nan:
-            ax2.annotate(f"{y1[i]:.3}", (x[i], y1[i]))
-        if y2[i] != np.nan:
-            ax2.annotate(f"{y2[i]:.3}", (x[i], y2[i]))
+    ax1 = df.plot.scatter(x=col_names[0], y=col_names[1], color="#E69F00", s=50, marker='^')
+    ax2 = df.plot.scatter(x=col_names[0], y=col_names[2], color="#56B4E9", s=50, ax=ax1)
+    for i, (x, y1, y2) in enumerate(zip(df[col_names[0]], df[col_names[1]], df[col_names[2]])):
+        if not np.isnan(y1):
+            ax2.annotate(f"{y1:.3}", (x, y1))
+        if not np.isnan(y2):
+            ax2.annotate(f"{y2:.3}", (x, y2))
 
     ax2.set_xlabel(f"instance: {tuple(instance), pred}")
-    if score_type == "lundberg":
-        ax2.set_ylabel("SHAP values")
-    else:
-        ax2.set_ylabel("Shapley values")
+    ax2.set_ylabel("SHAP values" if score_type == "lundberg" else "Shapley values")
     plt.title(fig_title)
     plt.savefig(filename)
     plt.clf()
@@ -41,7 +35,7 @@ def plot_disorder_inst(data, instance, pred, col_names, fig_title, filename, sco
     plt.close()
 
 
-# python3 XXX.py -bench pmlb_bool.txt
+# python3 XXX.py -bench pmlb_bool.txt lundberg
 if __name__ == '__main__':
     args = sys.argv[1:]
     if len(args) >= 2 and args[0] == '-bench':
@@ -72,18 +66,11 @@ if __name__ == '__main__':
                     for feat in axp:
                         assert feat < xpddnnf.nf
                         feat_cnts[feat] += 1
-                scores_irr = []
-                scores_rel = []
-                data_irr = xpddnnf.nf * [np.nan]
-                data_rel = xpddnnf.nf * [np.nan]
-                for j in range(xpddnnf.nf):
-                    if feat_cnts[j] == 0:
-                        scores_irr.append(b_score[idx, j])
-                        data_irr[j] = b_score[idx, j]
-                    else:
-                        scores_rel.append(b_score[idx, j])
-                        data_rel[j] = b_score[idx, j]
+                scores_irr = [b_score[idx, j] for j in range(xpddnnf.nf) if feat_cnts[j] == 0]
+                scores_rel = [b_score[idx, j] for j in range(xpddnnf.nf) if feat_cnts[j] != 0]
+                data_irr = [b_score[idx, j] if feat_cnts[j] == 0 else np.nan for j in range(xpddnnf.nf)]
+                data_rel = [b_score[idx, j] if feat_cnts[j] != 0 else np.nan for j in range(xpddnnf.nf)]
                 if len(scores_irr) and len(scores_rel):
-                    if abs(max(scores_irr)) >= abs(min(scores_rel)):
-                        arr = np.array([np.arange(len(feature_names)), data_irr, data_rel])
-                        plot_disorder_inst(arr.transpose(), list(line), pred, col_names, name, f"disorder_inst/{which_score}/{name}/{name}_{idx}", which_score)
+                    arr = np.array([np.arange(len(feature_names)), data_irr, data_rel])
+                    plot_disorder_inst(arr.transpose(), list(line), pred, col_names, name,
+                                       f"disorder_inst/{which_score}/{name}/{name}_{idx}", which_score)
