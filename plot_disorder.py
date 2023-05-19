@@ -71,6 +71,7 @@ if __name__ == '__main__':
                 data_irr = [b_score[idx, j] if feat_cnts[j] == 0 else np.nan for j in range(xpddnnf.nf)]
                 data_rel = [b_score[idx, j] if feat_cnts[j] != 0 else np.nan for j in range(xpddnnf.nf)]
                 if len(scores_irr) and len(scores_rel):
-                    arr = np.array([np.arange(len(feature_names)), data_irr, data_rel])
-                    plot_disorder_inst(arr.transpose(), list(line), pred, col_names, name,
-                                       f"disorder_inst/{which_score}/{name}/{name}_{idx}", which_score)
+                    if abs(max(scores_irr)) >= abs(min(scores_rel)):
+                        arr = np.array([np.arange(len(feature_names)), data_irr, data_rel])
+                        plot_disorder_inst(arr.transpose(), list(line), pred, col_names, name,
+                                           f"disorder_inst/{which_score}/{name}/{name}_{idx}", which_score)
