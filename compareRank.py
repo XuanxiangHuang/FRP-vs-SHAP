@@ -41,23 +41,15 @@ if __name__ == '__main__':
             b_score = b_data.to_numpy()
             l_score = l_data.to_numpy()
 
-            # distance based on pair comparison
+            # Calculate wrong pairs based on pair comparison
             n, m = b_score.shape
             l_wrong_pairs = [0] * int((m * (m - 1)) / 2 + 1)
             for k in range(n):
-                l_wrong = 0
-                for i in range(m):
-                    for j in range(i + 1, m):
-                        if b_score[k, i] < b_score[k, j]:
-                            if l_score[k, i] >= l_score[k, j]:
-                                l_wrong += 1
-                        elif b_score[k, i] == b_score[k, j]:
-                            if l_score[k, i] != l_score[k, j]:
-                                l_wrong += 1
-                        else:
-                            # b_score[k, i] > b_score[k, j]
-                            if l_score[k, i] <= l_score[k, j]:
-                                l_wrong += 1
+                l_wrong = sum((b_score[k, i] < b_score[k, j] and l_score[k, i] >= l_score[k, j])
+                              or (b_score[k, i] == b_score[k, j] and l_score[k, i] != l_score[k, j])
+                              or (b_score[k, i] > b_score[k, j] and l_score[k, i] <= l_score[k, j])
+                              for i in range(m)
+                              for j in range(i + 1, m))
                 l_wrong_pairs[l_wrong] += 1
 
             output = pd.DataFrame(data=np.array([[i for i in range(int((m * (m - 1)) / 2 + 1))], l_wrong_pairs]).transpose(),
