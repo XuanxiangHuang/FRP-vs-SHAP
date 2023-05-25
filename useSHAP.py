@@ -32,7 +32,9 @@ if __name__ == '__main__':
             ################## read data ##################
 
             ################## invoke SHAP explainer ##################
-            explainer = shap.Explainer(model=xpddnnf.predict, masker=df_X)  # it will use 'exact' algorithm
+            # The d-DNNF models we evaluate have ~10 features, so the explainer will
+            # use the 'exact' algorithm (model-agnostic) to compute the Shapley value.
+            explainer = shap.Explainer(model=xpddnnf.predict, masker=df_X)
             approx_shap_values = explainer(df_X)
             abs_shap_values = np.abs(approx_shap_values.values)
             np.savetxt(f"scores/all_points/lundberg/{name}.csv", abs_shap_values, delimiter=",", header=",".join(feature_names))
