@@ -32,7 +32,7 @@ if __name__ == '__main__':
             ################## read data ##################
 
             ################## invoke SHAP explainer ##################
-            explainer = shap.Explainer(xpddnnf.predict, df_X)
+            explainer = shap.Explainer(model=xpddnnf.predict, masker=df_X)  # it will use 'exact' algorithm
             approx_shap_values = explainer(df_X)
             abs_shap_values = np.abs(approx_shap_values.values)
             np.savetxt(f"scores/all_points/lundberg/{name}.csv", abs_shap_values, delimiter=",", header=",".join(feature_names))
