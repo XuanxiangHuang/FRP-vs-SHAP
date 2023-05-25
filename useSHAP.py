@@ -32,8 +32,8 @@ if __name__ == '__main__':
             ################## read data ##################
 
             ################## invoke SHAP explainer ##################
-            # The d-DNNF models we evaluate have ~10 features, so the explainer will
-            # use the 'exact' algorithm (model-agnostic) to compute the Shapley value.
+            # The d-DNNF models we evaluate have ≤ 10 features, so the explainer will
+            # use the 'exact' algorithm (which is model-agnostic) to compute the Shapley values.
             explainer = shap.Explainer(model=xpddnnf.predict, masker=df_X)
             approx_shap_values = explainer(df_X)
             abs_shap_values = np.abs(approx_shap_values.values)
