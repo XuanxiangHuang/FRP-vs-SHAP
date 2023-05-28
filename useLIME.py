@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #
-#   Using the SHAP tool (under uniform distribution)
+#   Using the LIME tool (under uniform distribution)
 #   Author: Xuanxiang Huang
 #
 ################################################################################
 import sys
 import pandas as pd
 import numpy as np
-import shap
+import lime
+import lime.lime_tabular
 from xddnnf.xpddnnf import XpdDnnf
+
+np.random.seed(73)
 ################################################################################
 
 if __name__ == '__main__':
@@ -31,11 +34,18 @@ if __name__ == '__main__':
             feature_names = list(df_X.columns)
             ################## read data ##################
 
-            ################## invoke SHAP explainer ##################
-            # The d-DNNF models we evaluate have ≤ 10 features, so the explainer will
-            # use the 'exact' algorithm (which is model-agnostic) to compute the Shapley values.
-            explainer = shap.Explainer(model=xpddnnf.predict, masker=df_X, feature_names=feature_names)
-            # The values in the i-th column represent the Shapley values of the corresponding i-th feature.
-            approx_shap_values = explainer(df_X)
-            abs_shap_values = np.abs(approx_shap_values.values)
-            np.savetxt(f"shap_scores/all_points/lundberg/{name}.csv", abs_shap_values, delimiter=",", header=",".join(feature_names))
+            ################## invoke LIME explainer ##################
+            feat_idx = list(range(len(feature_names)))
+            explainer = lime.lime_tabular.LimeTabularExplainer(training_data=df_X.to_numpy(), feature_names=feature_names,
+                                                               categorical_features=feat_idx, categorical_names=None,
+                                                               class_names=[0, 1],
+                                                               discretize_continuous=False)
+            all_values = []
+            for pt in df_X.to_numpy():
+                exp = explainer.explain_instance(pt, xpddnnf.predict_prob, num_features=len(feature_names))
+                lime_values = sorted(list(exp.as_map().values())[0], key=lambda x: x[0])
+                vals = [v for idx, v in lime_values]
+                all_values.append(vals)
+
+            abs_lime_values = np.abs(np.array(all_values))
+            np.savetxt(f"lime_scores/all_points/{name}.csv", abs_lime_values, delimiter=",", header=",".join(feature_names))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #
-#   Compute exact SHAP-score using Barcelo's algorithm (under uniform distribution)
+#   Compute the SHAP scores using Barcelo's algorithm (under uniform distribution)
 #   Author: Xuanxiang Huang
 #
 ################################################################################
@@ -44,4 +44,4 @@ if __name__ == '__main__':
                 scores.append(feats_score)
             exact_shap_scores = np.array(scores)
             abs_shap_scores = np.abs(exact_shap_scores)
-            np.savetxt(f"scores/all_points/barcelo/{name}.csv", abs_shap_scores, delimiter=",", header=",".join(feature_names))
+            np.savetxt(f"shap_scores/all_points/barcelo/{name}.csv", abs_shap_scores, delimiter=",", header=",".join(feature_names))

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #
-#   Plot exact SHAP-score of instance
+#   Plot the LIME scores of the disorder instances.
+#   Disorder is defined as instances where the LIME score for irrelevant features (irr)
+#   is greater than the LIME score for relevant features (rel).
 #   Author: Xuanxiang Huang
 #
 ################################################################################
@@ -16,7 +18,7 @@ import matplotlib.pyplot as plt
 # "#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
 
 
-def plot_disorder_inst(data, instance, pred, col_names, fig_title, filename, score_type="lundberg"):
+def plot_disorder_insts(data, instance, pred, col_names, fig_title, filename):
     df = pd.DataFrame(data, columns=col_names)
     ax1 = df.plot.scatter(x=col_names[0], y=col_names[1], color="#E69F00", s=50, marker='^')
     ax2 = df.plot.scatter(x=col_names[0], y=col_names[2], color="#56B4E9", s=50, ax=ax1)
@@ -27,7 +29,7 @@ def plot_disorder_inst(data, instance, pred, col_names, fig_title, filename, sco
             ax2.annotate(f"{y2:.3}", (x, y2))
 
     ax2.set_xlabel(f"instance: {tuple(instance), pred}")
-    ax2.set_ylabel("SHAP values" if score_type == "lundberg" else "Shapley values")
+    ax2.set_ylabel("Lime values")
     plt.title(fig_title)
     plt.savefig(filename)
     plt.clf()
@@ -35,12 +37,11 @@ def plot_disorder_inst(data, instance, pred, col_names, fig_title, filename, sco
     plt.close()
 
 
-# python3 XXX.py -bench pmlb_bool.txt lundberg
+# python3 XXX.py -bench pmlb_bool.txt
 if __name__ == '__main__':
     args = sys.argv[1:]
-    if len(args) >= 2 and args[0] == '-bench':
+    if len(args) >= 1 and args[0] == '-bench':
         bench_name = args[1]
-        which_score = args[2]
         with open(bench_name, 'r') as fp:
             name_list = fp.readlines()
         for item in name_list:
@@ -53,7 +54,7 @@ if __name__ == '__main__':
             df_X = pd.read_csv(f"samples/{name}/all_points/train.csv")
             feature_names = list(df_X.columns)
 
-            b_data = pd.read_csv(f"scores/all_points/{which_score}/{name}.csv")
+            b_data = pd.read_csv(f"lime_scores/all_points/{name}.csv")
             b_score = b_data.to_numpy()
             n, m = df_X.shape
             col_names = ['x', 'IRR', 'REL']
@@ -73,5 +74,5 @@ if __name__ == '__main__':
                 if len(scores_irr) and len(scores_rel):
                     if abs(max(scores_irr)) >= abs(min(scores_rel)):
                         arr = np.array([np.arange(len(feature_names)), data_irr, data_rel])
-                        plot_disorder_inst(arr.transpose(), list(line), pred, col_names, name,
-                                           f"disorder_inst/{which_score}/{name}/{name}_{idx}", which_score)
+                        plot_disorder_insts(arr.transpose(), list(line), pred, col_names, name,
+                                            f"lime_disorder_insts/{name}/{name}_{idx}")

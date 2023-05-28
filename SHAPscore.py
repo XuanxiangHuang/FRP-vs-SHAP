@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #
-#   Compute exact SHAP-score of d-DNNF classifier
+#   Compute the SHAP scores of an instance (for d-DNNF classifiers)
 #   Author: Xuanxiang Huang
 #
 ################################################################################
@@ -18,7 +18,7 @@ class SHAPdDNNF(object):
         (https://arxiv.org/abs/2104.08015)
     """
     def __init__(self, prior_feat_distribution):
-        # prior fully-factorized distributions (e.g. Uniform Distribution, Bernoulli Distribution)
+        # prior fully-factorized distributions (e.g. Uniform Distribution, Product Distribution)
         self.prior_feat_distribution = prior_feat_distribution
 
     def algo1(self, ddnnf_explainer: XpdDnnf, target_feat):
@@ -245,7 +245,7 @@ class SHAPdDNNF(object):
         :param ddnnf_explainer: d-DNNF explainer (based on formal method)
         :param target_feat: given feature
         :return: the SHAP-score of the target feature on given instance
-        with respect to given d-DNNF circuit under given distribution
+        with respect to given d-DNNF circuit under uniform distribution ONLY
         """
         nf = ddnnf_explainer.nf
         feats = list(range(nf))

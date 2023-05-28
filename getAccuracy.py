@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #
-#   Get Accuracy of d-DNNF classifier
+#   Get Accuracy of d-DNNF classifiers
 #   Author: Xuanxiang Huang
 #
 ################################################################################

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #
-#   Max exact SHAP-score not in AXp and min exact SHAP-score in AXp
+#   Plot the SHAP scores of the disorder instances.
+#   Disorder is defined as instances where the SHAP score for irrelevant features (irr)
+#   is greater than the SHAP score for relevant features (rel).
 #   Author: Xuanxiang Huang
 #
 ################################################################################
@@ -16,26 +18,18 @@ import matplotlib.pyplot as plt
 # "#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
 
 
-def plot_max_not_in_min_in(data, col_names, fig_title, filename, score_type="lundberg"):
+def plot_disorder_insts(data, instance, pred, col_names, fig_title, filename, score_type="lundberg"):
     df = pd.DataFrame(data, columns=col_names)
-    ax1 = df.plot.scatter(x=col_names[0], y=col_names[1], color="#E69F00")
-    ax2 = df.plot.scatter(x=col_names[0], y=col_names[2], color="#56B4E9", ax=ax1)
-    ax2.set_xlabel("Instances")
+    ax1 = df.plot.scatter(x=col_names[0], y=col_names[1], color="#E69F00", s=50, marker='^')
+    ax2 = df.plot.scatter(x=col_names[0], y=col_names[2], color="#56B4E9", s=50, ax=ax1)
+    for i, (x, y1, y2) in enumerate(zip(df[col_names[0]], df[col_names[1]], df[col_names[2]])):
+        if not np.isnan(y1):
+            ax2.annotate(f"{y1:.3}", (x, y1))
+        if not np.isnan(y2):
+            ax2.annotate(f"{y2:.3}", (x, y2))
+
+    ax2.set_xlabel(f"instance: {tuple(instance), pred}")
     ax2.set_ylabel("SHAP values" if score_type == "lundberg" else "Shapley values")
-    plt.title(fig_title)
-    plt.savefig(filename)
-    plt.clf()
-    plt.cla()
-    plt.close()
-
-
-def plot_comp_irr_rel(data, len_X, fig_title, filename, score_type="lundberg"):
-    plt.rcdefaults()
-    plt.bar(len_X, data, align='center', color=["#CC79A7", "#009E73"])
-    plt.annotate(f'{data[0]}', xy=(0, data[0]), ha='center', va='bottom')
-    plt.annotate(f'{data[1]}', xy=(1, data[1]), ha='center', va='bottom')
-    plt.ylabel('#Instances')
-    plt.xlabel('SHAP values' if score_type == "lundberg" else 'Shapley values')
     plt.title(fig_title)
     plt.savefig(filename)
     plt.clf()
@@ -61,15 +55,10 @@ if __name__ == '__main__':
             df_X = pd.read_csv(f"samples/{name}/all_points/train.csv")
             feature_names = list(df_X.columns)
 
-            b_data = pd.read_csv(f"scores/all_points/{which_score}/{name}.csv")
+            b_data = pd.read_csv(f"shap_scores/all_points/{which_score}/{name}.csv")
             b_score = b_data.to_numpy()
             n, m = df_X.shape
-            max_not_in_and_min_in = []
-            max_ir_lt_min_r = 0
-            max_ir_ge_min_r = 0
-            diff_max_ir_min_r = []
-            column_names = ["#Instance", "Max Scores of IR-Feat", "Min Scores of R-Feat"]
-            count = 0
+            col_names = ['x', 'IRR', 'REL']
             for idx, line in enumerate(df_X.to_numpy()):
                 xpddnnf.parse_instance(list(line))
                 feat_cnts = xpddnnf.nf * [0]
@@ -81,18 +70,10 @@ if __name__ == '__main__':
                         feat_cnts[feat] += 1
                 scores_irr = [b_score[idx, j] for j in range(xpddnnf.nf) if feat_cnts[j] == 0]
                 scores_rel = [b_score[idx, j] for j in range(xpddnnf.nf) if feat_cnts[j] != 0]
+                data_irr = [b_score[idx, j] if feat_cnts[j] == 0 else np.nan for j in range(xpddnnf.nf)]
+                data_rel = [b_score[idx, j] if feat_cnts[j] != 0 else np.nan for j in range(xpddnnf.nf)]
                 if len(scores_irr) and len(scores_rel):
                     if abs(max(scores_irr)) >= abs(min(scores_rel)):
-                        max_not_in_and_min_in.append([count, max(scores_irr), min(scores_rel)])
-                        diff_max_ir_min_r.append([count, max(scores_irr) - min(scores_rel)])
-                        max_ir_ge_min_r += 1
-                        count += 1
-                    else:
-                        max_ir_lt_min_r += 1
-                else:
-                    max_ir_lt_min_r += 1
-            plot_max_not_in_min_in(np.array(max_not_in_and_min_in), column_names, name,
-                                   f"scores/all_points/max_notin_min_in/{which_score}_svs_irr_rel/{name}.png",
-                                   which_score)
-            plot_comp_irr_rel(np.asarray([max_ir_ge_min_r, max_ir_lt_min_r]), ['Abnormal', 'Normal'], name,
-                              f"scores/all_points/max_notin_min_in/{which_score}_svs_diff/{name}.png", which_score)
+                        arr = np.array([np.arange(len(feature_names)), data_irr, data_rel])
+                        plot_disorder_insts(arr.transpose(), list(line), pred, col_names, name,
+                                            f"shap_disorder_insts/{which_score}/{name}/{name}_{idx}", which_score)
