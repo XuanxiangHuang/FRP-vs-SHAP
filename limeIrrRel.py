@@ -20,8 +20,8 @@ def plot_max_irr_min_rel(data, col_names, fig_title, filename):
     df = pd.DataFrame(data, columns=col_names)
     ax1 = df.plot.scatter(x=col_names[0], y=col_names[1], color="#E69F00")
     ax2 = df.plot.scatter(x=col_names[0], y=col_names[2], color="#56B4E9", ax=ax1)
-    ax2.set_xlabel("Instances")
-    ax2.set_ylabel("Lime values")
+    ax2.set_xlabel("#Instances")
+    ax2.set_ylabel("Lime scores")
     plt.title(fig_title)
     plt.savefig(filename)
     plt.clf()
@@ -35,7 +35,7 @@ def plot_irr_rel_summary(data, len_X, fig_title, filename):
     plt.annotate(f'{data[0]}', xy=(0, data[0]), ha='center', va='bottom')
     plt.annotate(f'{data[1]}', xy=(1, data[1]), ha='center', va='bottom')
     plt.ylabel('#Instances')
-    plt.xlabel('Lime values')
+    plt.xlabel('Lime scores')
     plt.title(fig_title)
     plt.savefig(filename)
     plt.clf()
@@ -91,6 +91,6 @@ if __name__ == '__main__':
                 else:
                     max_ir_lt_min_r += 1
             plot_max_irr_min_rel(np.array(max_irr_and_min_rel), column_names, name,
-                                 f"lime_scores/all_points/IrrRel/values/{name}.png")
+                                 f"lime_scores/all_points/IrrRel/scores/{name}.png")
             plot_irr_rel_summary(np.asarray([max_ir_ge_min_r, max_ir_lt_min_r]), ['Abnormal', 'Normal'], name,
                                  f"lime_scores/all_points/IrrRel/summary/{name}.png")

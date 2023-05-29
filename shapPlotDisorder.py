@@ -29,7 +29,7 @@ def plot_disorder_insts(data, instance, pred, col_names, fig_title, filename, sc
             ax2.annotate(f"{y2:.3}", (x, y2))
 
     ax2.set_xlabel(f"instance: {tuple(instance), pred}")
-    ax2.set_ylabel("SHAP values" if score_type == "lundberg" else "Shapley values")
+    ax2.set_ylabel("SHAP scores" if score_type == "lundberg" else "Shapley values")
     plt.title(fig_title)
     plt.savefig(filename)
     plt.clf()
