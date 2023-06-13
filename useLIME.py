@@ -47,5 +47,6 @@ if __name__ == '__main__':
                 vals = [v for idx, v in lime_values]
                 all_values.append(vals)
 
-            abs_lime_values = np.abs(np.array(all_values))
-            np.savetxt(f"lime_scores/all_points/{name}.csv", abs_lime_values, delimiter=",", header=",".join(feature_names))
+            header_line = ",".join(feature_names)
+            header_line = header_line.lstrip("#")
+            np.savetxt(f"lime_scores/all_points/{name}.csv", np.array(all_values), delimiter=",", header=header_line, comments="")
