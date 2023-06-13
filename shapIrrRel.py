@@ -62,7 +62,7 @@ if __name__ == '__main__':
             feature_names = list(df_X.columns)
 
             b_data = pd.read_csv(f"shap_scores/all_points/{which_score}/{name}.csv")
-            b_score = b_data.to_numpy()
+            b_score = np.abs(b_data.to_numpy())
             n, m = df_X.shape
             max_irr_and_min_rel = []
             max_ir_lt_min_r = 0
@@ -82,7 +82,7 @@ if __name__ == '__main__':
                 scores_irr = [b_score[idx, j] for j in range(xpddnnf.nf) if feat_cnts[j] == 0]
                 scores_rel = [b_score[idx, j] for j in range(xpddnnf.nf) if feat_cnts[j] != 0]
                 if len(scores_irr) and len(scores_rel):
-                    if abs(max(scores_irr)) >= abs(min(scores_rel)):
+                    if max(scores_irr) >= min(scores_rel):
                         max_irr_and_min_rel.append([count, max(scores_irr), min(scores_rel)])
                         diff_max_ir_min_r.append([count, max(scores_irr) - min(scores_rel)])
                         max_ir_ge_min_r += 1

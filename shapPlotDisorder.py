@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 # "#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
 
 
-def plot_disorder_insts(data, instance, pred, col_names, fig_title, filename, score_type="lundberg"):
+def plot_disorder_insts(data, instance, pred, col_names, fig_title, filename, score_type="lundberg", avg_val=None):
     df = pd.DataFrame(data, columns=col_names)
     ax1 = df.plot.scatter(x=col_names[0], y=col_names[1], color="#E69F00", s=50, marker='^')
     ax2 = df.plot.scatter(x=col_names[0], y=col_names[2], color="#56B4E9", s=50, ax=ax1)
@@ -30,6 +30,9 @@ def plot_disorder_insts(data, instance, pred, col_names, fig_title, filename, sc
 
     ax2.set_xlabel(f"instance: {tuple(instance), pred}")
     ax2.set_ylabel("SHAP scores" if score_type == "lundberg" else "Shapley values")
+    if avg_val is not None:
+        ax2.axhline(avg_val, color='r', linestyle='--')
+
     plt.title(fig_title)
     plt.savefig(filename)
     plt.clf()
@@ -63,6 +66,8 @@ if __name__ == '__main__':
                 xpddnnf.parse_instance(list(line))
                 feat_cnts = xpddnnf.nf * [0]
                 pred = xpddnnf.get_prediction()
+                univ = [True] * xpddnnf.nf
+                avg_output = (xpddnnf.model_counting(univ) / (2 ** xpddnnf.nf))
                 axps, cxps = xpddnnf.enum_exps()
                 for axp in axps:
                     for feat in axp:
@@ -73,7 +78,8 @@ if __name__ == '__main__':
                 data_irr = [b_score[idx, j] if feat_cnts[j] == 0 else np.nan for j in range(xpddnnf.nf)]
                 data_rel = [b_score[idx, j] if feat_cnts[j] != 0 else np.nan for j in range(xpddnnf.nf)]
                 if len(scores_irr) and len(scores_rel):
-                    if abs(max(scores_irr)) >= abs(min(scores_rel)):
+                    if max([abs(x) for x in scores_irr]) >= min([abs(x) for x in scores_rel]):
                         arr = np.array([np.arange(len(feature_names)), data_irr, data_rel])
                         plot_disorder_insts(arr.transpose(), list(line), pred, col_names, name,
-                                            f"shap_disorder_insts/{which_score}/{name}/{name}_{idx}", which_score)
+                                            f"shap_disorder_insts/{which_score}/{name}/{name}_{idx}",
+                                            which_score, avg_output)

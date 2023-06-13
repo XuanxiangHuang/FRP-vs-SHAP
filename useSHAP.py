@@ -10,6 +10,8 @@ import pandas as pd
 import numpy as np
 import shap
 from xddnnf.xpddnnf import XpdDnnf
+
+np.random.seed(73)
 ################################################################################
 
 if __name__ == '__main__':
@@ -37,5 +39,6 @@ if __name__ == '__main__':
             explainer = shap.Explainer(model=xpddnnf.predict, masker=df_X, feature_names=feature_names)
             # The values in the i-th column represent the Shapley values of the corresponding i-th feature.
             approx_shap_values = explainer(df_X)
-            abs_shap_values = np.abs(approx_shap_values.values)
-            np.savetxt(f"shap_scores/all_points/lundberg/{name}.csv", abs_shap_values, delimiter=",", header=",".join(feature_names))
+            header_line = ",".join(feature_names)
+            header_line = header_line.lstrip("#")
+            np.savetxt(f"shap_scores/all_points/lundberg/{name}.csv", approx_shap_values.values, delimiter=",", header=header_line, comments="")

@@ -25,6 +25,8 @@ if __name__ == '__main__':
             ################## read d-DNNF ##################
             xpddnnf = XpdDnnf.from_file(f'examples/{name}/ddnnf_2_fanin/{name}.dnnf', verb=0)
             xpddnnf.parse_feature_map(f'examples/{name}/{name}.map')
+            assert xpddnnf.is_smooth()
+            assert xpddnnf.is_decomposable()
             ################## read d-DNNF ##################
             ################## read data ##################
             df_X = pd.read_csv(f"samples/{name}/all_points/train.csv")
@@ -43,5 +45,6 @@ if __name__ == '__main__':
                     feats_score[feat] = shapddnnf.algo1(xpddnnf, feat)
                 scores.append(feats_score)
             exact_shap_scores = np.array(scores)
-            abs_shap_scores = np.abs(exact_shap_scores)
-            np.savetxt(f"shap_scores/all_points/barcelo/{name}.csv", abs_shap_scores, delimiter=",", header=",".join(feature_names))
+            header_line = ",".join(feature_names)
+            header_line = header_line.lstrip("#")
+            np.savetxt(f"shap_scores/all_points/barcelo/{name}.csv", exact_shap_scores, delimiter=",", header=header_line, comments="")
