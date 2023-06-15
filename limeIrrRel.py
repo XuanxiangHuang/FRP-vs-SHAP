@@ -61,7 +61,7 @@ if __name__ == '__main__':
             feature_names = list(df_X.columns)
 
             b_data = pd.read_csv(f"lime_scores/all_points/{name}.csv")
-            b_score = np.abs(b_data.to_numpy())
+            b_score = np.round(np.abs(b_data.to_numpy()), decimals=4)
             n, m = df_X.shape
             max_irr_and_min_rel = []
             max_ir_lt_min_r = 0

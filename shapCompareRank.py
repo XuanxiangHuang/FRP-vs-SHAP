@@ -38,8 +38,8 @@ if __name__ == '__main__':
             b_data = pd.read_csv(f"shap_scores/all_points/barcelo/{name}.csv")
             l_data = pd.read_csv(f"shap_scores/all_points/lundberg/{name}.csv")
 
-            b_score = np.abs(b_data.to_numpy())
-            l_score = np.abs(l_data.to_numpy())
+            b_score = np.round(np.abs(b_data.to_numpy()), decimals=4)
+            l_score = np.round(np.abs(l_data.to_numpy()), decimals=4)
 
             # Calculate wrong pairs based on pair comparison
             n, m = b_score.shape
